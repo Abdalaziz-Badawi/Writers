@@ -10,7 +10,22 @@
 - **User-Friendly Interface**: Intuitive design for easy navigation.
 - **Real-Time Sync**: Synchronize data across all your devices.
 - **Offline Mode**: Access your data even without an internet connection.
-- **Customizable Settings**: Personalize the app to suit your preferences.
+- **Customizable Theme**: Personalize the app to suit your preferences.
+- **Linked Accounts**: link your account with an email. 
+- **security**: App lock when logging in, and after inactive periods. 
+- **Word Processor**: a word processor. 
+- **Auto-Save** : automatically saves input, preiodacly, time gab can be changed, from instant to every 5 minutes. 
+- **Counter** : counts words, chapters, volumes, projects, characters... Etc. 
+- **Dynamic Maps** : You can refer to Obsidian for a reference, there would be different maps, with data/pages sorted according to type, tag, or other certain specs. 
+- **Character Building Station** : 
+- **World Building station** : 
+- **Plot building station** :
+- **Template Builder** :
+- **
+- **
+- **
+- **
+
 
 ## Installation
 
