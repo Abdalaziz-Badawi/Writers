@@ -27,7 +27,7 @@
 - **
 
 
-## Installation
+## Platforms 
 
 ### Desktop
 
@@ -35,19 +35,25 @@
    - Download the installer from [MyApp Windows Installer](#).
    - Run the installer and follow the on-screen instructions.
 
-2. **macOS**:
+2. **Linux**:
+   - Download the installer from [Installer](#).
+   - Action.
+
+3. **macOS**:
    - Download the installer from [MyApp macOS Installer](#).
    - Open the downloaded file and drag the MyApp icon to the Applications folder.
 
 ### Mobile
 
-1. **iOS**:
+
+1. **Android**:
+   - Open the Google Play Store on your device.
+   - Search for "MyApp" and tap the install button.
+  
+2. **iOS**:
    - Open the App Store on your device.
    - Search for "MyApp" and tap the download button.
 
-2. **Android**:
-   - Open the Google Play Store on your device.
-   - Search for "MyApp" and tap the install button.
 
 ## Usage
 
