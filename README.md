@@ -1,28 +1,28 @@
-# MyApp
+# 
 
 ## Overview
 
-**MyApp** is a versatile Word-processor application designed specifically for writers, of all types, providing seamless functionality across both desktop and mobile platforms. It offers a range of features to enhance productivity and user experience.
+**MyApp** is a versatile Word-processor Text-Editor application designed specifically for writers of all types, journalists, copywriters, authors of novels, books, stories, poems, simply of all types, providing seamless functionality across both desktop and mobile platforms. It offers a range of features to enhance productivity and user experience.
 
 ## Features
 
-- **Cross-Platform Compatibility**: Works on Windows, macOS, iOS, and Android.
+- **Cross-Platform Compatibility**: Works on Windows, Linux, macOS, iOS, and Android.
 - **User-Friendly Interface**: Intuitive design for easy navigation.
 - **Real-Time Sync**: Synchronize data across all your devices.
-- **Offline Mode**: Access your data even without an internet connection.
+- **Offline Mode**: Access your data even without an internet connection. No Internet connection is needed.
 - **Customizable Theme**: Personalize the app to suit your preferences.
 - **Linked Accounts**: link your account with an email. 
 - **security**: App lock when logging in, and after inactive periods. 
-- **Word Processor**: a word processor. 
-- **Auto-Save** : automatically saves input, preiodacly, time gab can be changed, from instant to every 5 minutes. 
+- **Word Processor**: rich and customizable text input field, word processor. 
+- **Auto-Save** : automatically saves input, periodically, the time gap can be changed, from instant to every 5 minutes. 
 - **Counter** : counts words, chapters, volumes, projects, characters... Etc. 
 - **Dynamic Maps** : You can refer to Obsidian for a reference, there would be different maps, with data/pages sorted according to type, tag, or other certain specs. 
-- **Character Building Station** : 
+- **Character Building Station** : customizable, refer to fndom wiki templates
 - **World Building station** : 
 - **Plot building station** :
 - **Template Builder** :
-- **
-- **
+- **Writing History** :
+- **Focus Mode** : Locks in other apps or disables notifications to induce a distraction-free environment, 
 - **
 - **
 
@@ -30,6 +30,7 @@
 ## Platforms 
 
 ### Desktop
+main running enviroment for the application
 
 1. **Windows**:
    - Download the installer from [MyApp Windows Installer](#).
