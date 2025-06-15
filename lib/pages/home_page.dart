@@ -17,9 +17,9 @@ class Homepage extends StatelessWidget {
 
 
       floatingActionButton: FloatingActionButton(
-        onPressed: null, // Add functionality to create a new project
+        onPressed: null,
+        tooltip: 'Create New Project', // Add functionality to create a new project
         child: Icon(Icons.add),
-        tooltip: 'Create New Project',
       ),
     );
   }

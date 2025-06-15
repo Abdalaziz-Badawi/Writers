@@ -1,8 +1,8 @@
-# 
+# Writers Archives
 
 ## Overview
 
-**MyApp** is a versatile Word-processor Text-Editor application designed specifically for writers of all types, journalists, copywriters, authors of novels, books, stories, poems, simply of all types, providing seamless functionality across both desktop and mobile platforms. It offers a range of features to enhance productivity and user experience.
+**Writers** is a versatile Word-processor Text-Editor application designed specifically for writers of all types, journalists, copywriters, authors of novels, books, stories, poems, simply of all types, providing seamless functionality across both desktop and mobile platforms. It offers a range of features to enhance productivity and user experience.
 
 ## Features
 
@@ -17,7 +17,7 @@
 - **Auto-Save** : automatically saves input, periodically, the time gap can be changed, from instant to every 5 minutes. 
 - **Counter** : counts words, chapters, volumes, projects, characters... Etc. 
 - **Dynamic Maps** : You can refer to Obsidian for a reference, there would be different maps, with data/pages sorted according to type, tag, or other certain specs. 
-- **Character Building Station** : customizable, refer to fndom wiki templates
+- **Character Building Station** : customizable, refer to fandom wiki templates
 - **World Building station** : 
 - **Plot building station** :
 - **Template Builder** :
@@ -30,7 +30,7 @@
 ## Platforms 
 
 ### Desktop
-main running enviroment for the application
+main running environment for the application
 
 1. **Windows**:
    - Download the installer from [MyApp Windows Installer](#).

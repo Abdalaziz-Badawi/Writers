@@ -1,0 +1,15 @@
+{
+          "flutterTools.displayGetxContextMenu": false,
+          "flutterTools.displayMobxContextMenu": false,
+          "flutterTools.displayRiverpodContextMenu": false,
+          "flutterTools.displayModularContextMenu": false,
+          "sqltools.connections": [
+                    {
+                              "previewLimit": 50,
+                              "driver": "SQLite",
+                              "database": "\"C:\\Users\\The Architect\\Dev Station\\Writers\\lib\\database\\database.sqlite\"",
+                              "name": "MyProjects"
+                    }
+          ],
+          "sqltools.useNodeRuntime": true
+}

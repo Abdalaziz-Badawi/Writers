@@ -1,5 +1,5 @@
 name: writers
-description: A cross-platform Flutter project.
+description: An application specialized for writers from all works of life, with creative features to increase productivity.
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -9,10 +9,21 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  sqflite: ^2.4.2
+  # path_provider: ^2.0.11
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_lints: ^5.0.0
 
 flutter:
   uses-material-design: true
+  # To add assets to your application, add an assets section, like this:
+  # assets:
+  #   - assets/images/
+  #   - assets/icons/
+  #   - 
+  # To add custom fonts, add a fonts section here,
+  # # see https://flutter.dev/custom-fonts/
