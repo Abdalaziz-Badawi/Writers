@@ -1,0 +1,404 @@
+// File: lib/database/database_helper.dart
+import 'dart:async';
+import 'dart:io';
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
+
+class DatabaseHelper {
+  static final DatabaseHelper _instance = DatabaseHelper._internal();
+  factory DatabaseHelper() => _instance;
+  DatabaseHelper._internal();
+
+  static Database? _database;
+
+  Future<Database> get database async {
+    _database ??= await _initDatabase();
+    return _database!;
+  }
+
+  Future<Database> _initDatabase() async {
+    Directory documentsDirectory = await getApplicationDocumentsDirectory();
+    String path = join(documentsDirectory.path, 'productivity_app.db');
+    
+    return await openDatabase(
+      path,
+      version: 1,
+      onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
+    );
+  }
+
+  Future<void> _onCreate(Database db, int version) async {
+    // Categories table
+    await db.execute('''
+      CREATE TABLE categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE,
+        description TEXT,
+        color TEXT,
+        icon TEXT,
+        is_active INTEGER DEFAULT 1,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
+
+    // Tasks table (main productivity table)
+    await db.execute('''
+      CREATE TABLE tasks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        description TEXT,
+        status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed', 'cancelled', 'on_hold')),
+        priority INTEGER NOT NULL DEFAULT 3 CHECK (priority BETWEEN 1 AND 5),
+        category_id INTEGER,
+        parent_task_id INTEGER,
+        
+        estimated_duration INTEGER,
+        actual_duration INTEGER,
+        due_date TEXT,
+        start_date TEXT,
+        completion_date TEXT,
+        
+        progress_percentage INTEGER DEFAULT 0 CHECK (progress_percentage BETWEEN 0 AND 100),
+        difficulty_level INTEGER CHECK (difficulty_level BETWEEN 1 AND 5),
+        
+        energy_level_required INTEGER CHECK (energy_level_required BETWEEN 1 AND 5),
+        focus_time_required INTEGER,
+        
+        location TEXT,
+        tools_required TEXT,
+        prerequisites TEXT,
+        
+        reward TEXT,
+        consequences TEXT,
+        accountability_partner TEXT,
+        
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        created_by TEXT,
+        notes TEXT,
+        tags TEXT,
+        
+        FOREIGN KEY (category_id) REFERENCES categories(id),
+        FOREIGN KEY (parent_task_id) REFERENCES tasks(id)
+      )
+    ''');
+
+    // Time sessions table
+    await db.execute('''
+      CREATE TABLE time_sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        task_id INTEGER NOT NULL,
+        start_time TEXT NOT NULL,
+        end_time TEXT,
+        duration INTEGER,
+        session_type TEXT DEFAULT 'work' CHECK (session_type IN ('work', 'break', 'planning', 'review')),
+        productivity_rating INTEGER CHECK (productivity_rating BETWEEN 1 AND 5),
+        notes TEXT,
+        interruptions INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        
+        FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
+      )
+    ''');
+
+    // Habits table
+    await db.execute('''
+      CREATE TABLE habits (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        description TEXT,
+        frequency_type TEXT NOT NULL CHECK (frequency_type IN ('daily', 'weekly', 'monthly', 'custom')),
+        frequency_value INTEGER,
+        target_streak INTEGER,
+        current_streak INTEGER DEFAULT 0,
+        best_streak INTEGER DEFAULT 0,
+        is_active INTEGER DEFAULT 1,
+        category_id INTEGER,
+        reminder_time TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        
+        FOREIGN KEY (category_id) REFERENCES categories(id)
+      )
+    ''');
+
+    // Habit completions table
+    await db.execute('''
+      CREATE TABLE habit_completions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        habit_id INTEGER NOT NULL,
+        completion_date TEXT NOT NULL,
+        completed INTEGER DEFAULT 1,
+        notes TEXT,
+        mood_rating INTEGER CHECK (mood_rating BETWEEN 1 AND 5),
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        
+        FOREIGN KEY (habit_id) REFERENCES habits(id) ON DELETE CASCADE,
+        UNIQUE(habit_id, completion_date)
+      )
+    ''');
+
+    // Goals table
+    await db.execute('''
+      CREATE TABLE goals (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        description TEXT,
+        goal_type TEXT CHECK (goal_type IN ('short_term', 'medium_term', 'long_term', 'yearly', 'lifetime')),
+        status TEXT DEFAULT 'active' CHECK (status IN ('active', 'completed', 'paused', 'cancelled')),
+        target_date TEXT,
+        completion_date TEXT,
+        progress_percentage INTEGER DEFAULT 0 CHECK (progress_percentage BETWEEN 0 AND 100),
+        measurable_target TEXT,
+        category_id INTEGER,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        
+        FOREIGN KEY (category_id) REFERENCES categories(id)
+      )
+    ''');
+
+    // Reviews table
+    await db.execute('''
+      CREATE TABLE reviews (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        review_date TEXT NOT NULL,
+        review_type TEXT NOT NULL CHECK (review_type IN ('daily', 'weekly', 'monthly', 'quarterly')),
+        
+        tasks_completed INTEGER DEFAULT 0,
+        tasks_planned INTEGER DEFAULT 0,
+        total_focus_time INTEGER DEFAULT 0,
+        productivity_score INTEGER CHECK (productivity_score BETWEEN 1 AND 10),
+        
+        what_went_well TEXT,
+        what_to_improve TEXT,
+        lessons_learned TEXT,
+        tomorrow_focus TEXT,
+        next_week_priorities TEXT,
+        
+        overall_mood INTEGER CHECK (overall_mood BETWEEN 1 AND 5),
+        energy_level INTEGER CHECK (energy_level BETWEEN 1 AND 5),
+        stress_level INTEGER CHECK (stress_level BETWEEN 1 AND 5),
+        
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
+
+    // Create indexes
+    await db.execute('CREATE INDEX idx_tasks_status ON tasks(status)');
+    await db.execute('CREATE INDEX idx_tasks_due_date ON tasks(due_date)');
+    await db.execute('CREATE INDEX idx_tasks_priority ON tasks(priority)');
+    await db.execute('CREATE INDEX idx_tasks_category ON tasks(category_id)');
+
+    // Insert default categories
+    await _insertDefaultCategories(db);
+  }
+
+  Future<void> _insertDefaultCategories(Database db) async {
+    List<Map<String, dynamic>> categories = [
+      {'name': 'Work', 'description': 'Professional tasks and projects', 'color': '#3B82F6', 'icon': 'briefcase'},
+      {'name': 'Personal', 'description': 'Personal development and life tasks', 'color': '#10B981', 'icon': 'user'},
+      {'name': 'Health', 'description': 'Health and fitness related activities', 'color': '#EF4444', 'icon': 'heart'},
+      {'name': 'Learning', 'description': 'Education and skill development', 'color': '#8B5CF6', 'icon': 'book'},
+      {'name': 'Finance', 'description': 'Financial planning and management', 'color': '#F59E0B', 'icon': 'dollar-sign'},
+    ];
+
+    for (var category in categories) {
+      await db.insert('categories', category);
+    }
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    // Handle database migrations here
+    if (oldVersion < 2) {
+      // Add new columns or tables for version 2
+    }
+  }
+
+  // CRUD Operations for Tasks
+  Future<int> insertTask(Map<String, dynamic> task) async {
+    final db = await database;
+    return await db.insert('tasks', task);
+  }
+
+  Future<List<Map<String, dynamic>>> getTasks({String? status, int? categoryId}) async {
+    final db = await database;
+    String where = '';
+    List<dynamic> whereArgs = [];
+
+    if (status != null) {
+      where += 'status = ?';
+      whereArgs.add(status);
+    }
+
+    if (categoryId != null) {
+      if (where.isNotEmpty) where += ' AND ';
+      where += 'category_id = ?';
+      whereArgs.add(categoryId);
+    }
+
+    return await db.query(
+      'tasks',
+      where: where.isEmpty ? null : where,
+      whereArgs: whereArgs.isEmpty ? null : whereArgs,
+      orderBy: 'priority ASC, due_date ASC',
+    );
+  }
+
+  Future<int> updateTask(int id, Map<String, dynamic> task) async {
+    final db = await database;
+    task['updated_at'] = DateTime.now().toIso8601String();
+    return await db.update('tasks', task, where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<int> deleteTask(int id) async {
+    final db = await database;
+    return await db.delete('tasks', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // Time tracking methods
+  Future<int> startTimeSession(int taskId) async {
+    final db = await database;
+    return await db.insert('time_sessions', {
+      'task_id': taskId,
+      'start_time': DateTime.now().toIso8601String(),
+      'session_type': 'work',
+    });
+  }
+
+  Future<int> endTimeSession(int sessionId, {int? productivityRating, String? notes}) async {
+    final db = await database;
+    final endTime = DateTime.now();
+    
+    // Get start time to calculate duration
+    final session = await db.query('time_sessions', where: 'id = ?', whereArgs: [sessionId]);
+    if (session.isNotEmpty) {
+      final startTime = DateTime.parse(session.first['start_time'] as String);
+      final duration = endTime.difference(startTime).inMinutes;
+      
+      return await db.update('time_sessions', {
+        'end_time': endTime.toIso8601String(),
+        'duration': duration,
+        'productivity_rating': productivityRating,
+        'notes': notes,
+      }, where: 'id = ?', whereArgs: [sessionId]);
+    }
+    return 0;
+  }
+
+  // Habit tracking methods
+  Future<int> insertHabit(Map<String, dynamic> habit) async {
+    final db = await database;
+    return await db.insert('habits', habit);
+  }
+
+  Future<int> markHabitComplete(int habitId, DateTime date, {int? moodRating, String? notes}) async {
+    final db = await database;
+    return await db.insert('habit_completions', {
+      'habit_id': habitId,
+      'completion_date': date.toIso8601String().split('T')[0], // Date only
+      'completed': 1,
+      'mood_rating': moodRating,
+      'notes': notes,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  // Analytics methods
+  Future<Map<String, dynamic>> getProductivityStats(DateTime startDate, DateTime endDate) async {
+    final db = await database;
+    
+    // Get completed tasks count
+    final tasksResult = await db.rawQuery('''
+      SELECT COUNT(*) as completed_tasks 
+      FROM tasks 
+      WHERE status = 'completed' 
+      AND completion_date BETWEEN ? AND ?
+    ''', [startDate.toIso8601String(), endDate.toIso8601String()]);
+
+    // Get total focus time
+    final timeResult = await db.rawQuery('''
+      SELECT SUM(duration) as total_focus_time 
+      FROM time_sessions 
+      WHERE start_time BETWEEN ? AND ?
+    ''', [startDate.toIso8601String(), endDate.toIso8601String()]);
+
+    return {
+      'completed_tasks': tasksResult.first['completed_tasks'] ?? 0,
+      'total_focus_time': timeResult.first['total_focus_time'] ?? 0,
+    };
+  }
+
+  Future<void> close() async {
+    final db = await database;
+    db.close();
+  }
+}
+
+// Task model class for type safety
+class Task {
+  final int? id;
+  final String title;
+  final String? description;
+  final String status;
+  final int priority;
+  final int? categoryId;
+  final int? parentTaskId;
+  final int? estimatedDuration;
+  final DateTime? dueDate;
+  final int? energyLevelRequired;
+  final int? focusTimeRequired;
+  final String? location;
+  final List<String>? tags;
+
+  Task({
+    this.id,
+    required this.title,
+    this.description,
+    this.status = 'pending',
+    this.priority = 3,
+    this.categoryId,
+    this.parentTaskId,
+    this.estimatedDuration,
+    this.dueDate,
+    this.energyLevelRequired,
+    this.focusTimeRequired,
+    this.location,
+    this.tags,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'description': description,
+      'status': status,
+      'priority': priority,
+      'category_id': categoryId,
+      'parent_task_id': parentTaskId,
+      'estimated_duration': estimatedDuration,
+      'due_date': dueDate?.toIso8601String(),
+      'energy_level_required': energyLevelRequired,
+      'focus_time_required': focusTimeRequired,
+      'location': location,
+      'tags': tags?.join(','),
+    };
+  }
+
+  factory Task.fromMap(Map<String, dynamic> map) {
+    return Task(
+      id: map['id'],
+      title: map['title'],
+      description: map['description'],
+      status: map['status'] ?? 'pending',
+      priority: map['priority'] ?? 3,
+      categoryId: map['category_id'],
+      parentTaskId: map['parent_task_id'],
+      estimatedDuration: map['estimated_duration'],
+      dueDate: map['due_date'] != null ? DateTime.parse(map['due_date']) : null,
+      energyLevelRequired: map['energy_level_required'],
+      focusTimeRequired: map['focus_time_required'],
+      location: map['location'],
+      tags: map['tags']?.split(',')?.where((tag) => tag.isNotEmpty)?.toList(),
+    );
+  }
+}
